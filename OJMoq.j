@@ -52,6 +52,11 @@
 	return self;
 }
 
+- (void)verify:(Function)expectation
+{
+	expectation();
+}
+
 - (id)selector:(SEL)aSelector returns:(CPObject)value
 {
 	[_returnValues setObject:value forKey:aSelector];
