@@ -125,3 +125,8 @@ function checkThatSelectorHasBeenCalledExpectedNumberOfTimes(selector, expectedN
 		fail("Selector " + sel_getName(selector) + " was called too many times. Expected: " + expectedNumberOfTimes + " Got: " + [_timesSelectorHasBeenCalled objectForKey:selector]);			
 	}
 }
+
+function moq(baseObject)
+{
+	return [OJMoq mockBaseObject:baseObject];
+}

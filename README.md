@@ -30,3 +30,26 @@ You can specify return values:
 	[mock equals:@"Doesnt Matter"];
 	
 More to come!
+
+The Power of OJMoq
+==================
+
+An example of a complex Moq that would be unreadable otherwise:
+	
+	var mock = moq(@"Test");
+	[mock doSomething];
+	[[[[[mock
+	     expectThatSelector:@selector(equals:) isCalled:2]
+	     selector:@selector(equals:) returns:YES]
+	     expectThatSelector:@selector(compare:) isCalled:3]
+	     selector:@selector(compare:) returns:NO]
+	     verifyThatAllExpectationsHaveBeenMet];
+
+Testing
+=======
+
+You can run the tests by running:
+
+	ojtest tests/OJMoqTest.j
+	
+from the top level of the project.
