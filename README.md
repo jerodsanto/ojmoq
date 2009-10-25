@@ -8,6 +8,10 @@ Usage
 
 To quickly get started, all you need to do is use the following line of code:
 	
+	var mock = moq(yourObject);
+	
+Alternatively, you can use a more Objective-J syntax and use:
+	
 	var mock = [OJMoq mockBaseObject:yourObject];
 	
 And badda-bing-badda-boom! You have your very own mock ready to use.
@@ -28,6 +32,17 @@ You can specify return values:
 	var mock = [OJMoq mockBaseObject:@"Test"];
 	[mock selector:@selector(equals:) returns:YES];
 	[mock equals:@"Doesnt Matter"];
+	
+You can set expectations that will check parameters:
+	
+	var mock = moq(@"Test");
+	var arguments = [CPArray withObject:@"WillStillPass"];
+	[mock expectThatSelector:@selector(compare:) isCalled:2 withArguments:arguments];
+	[mock compare:@"WillStillPass"];
+	[mock compare:@"Bob"];
+	[mock compare:@"WillStillPass"];
+	[mock compare:@"Bill"];
+	[mock verifyThatAllExpectationsHaveBeenMet]; // verifies!
 	
 More to come!
 
