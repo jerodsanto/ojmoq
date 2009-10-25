@@ -1,4 +1,6 @@
 @import <Foundation/CPObject.j>
+@import "OJMoqSelector.j"
+@import "Find+CPArray.j"
 
 /*!
  * A mocking library based off of the Moq library for .NET
@@ -10,9 +12,7 @@
 {
 	CPObject	_baseObject		@accessors(readonly, property=object);
 	CPArray		_selectors;
-	CPDictionary _timesSelectorHasBeenCalled;
 	CPArray		_expectations;
-	CPDictionary _returnValues;
 }
 
 + (id)mockBaseObject:(CPObject)baseObject
@@ -26,9 +26,6 @@
 	{
 		_baseObject = baseObject;
 		
-		_returnValues = [CPDictionary dictionary];
-		_timesSelectorHasBeenCalled = [CPDictionary dictionary];
-		
 		_expectations = [[CPArray alloc] init];
 		_selectors = [[CPArray alloc] init];
 	}
@@ -37,9 +34,30 @@
 
 - (id)expectThatSelector:(SEL)selector isCalled:(int)times
 {
-	var expectationFunction = function(){checkThatSelectorHasBeenCalledExpectedNumberOfTimes(selector, times, _timesSelectorHasBeenCalled);};	
+	var theSelector = [[OJMoqSelector alloc] initWithName:sel_getName(selector)];
+	var expectationFunction = function(){checkThatSelectorHasBeenCalledExpectedNumberOfTimes(findSelector(theSelector, _selectors), times);};	
 	[_expectations addObject:expectationFunction];	
 	return self;
+}
+
+- (id)selector:(SEL)aSelector returns:(CPObject)value
+{
+	var theSelector = findSelector([[OJMoqSelector alloc] initWithName:sel_getName(aSelector)], _selectors);
+	if(theSelector)
+	{
+		[theSelector setReturnValue:value];
+	}
+	else
+	{
+		var aNewSelector = [[OJMoqSelector alloc] initWithName:sel_getName(aSelector)];
+		[aNewSelector setReturnValue:value];
+		[_selectors addObject:aNewSelector];
+	}
+}
+
+- (id)selector:(SEL)aSelector withArguments:(CPArray)someArguments returns:(CPObject)value
+{
+	
 }
 
 - (id)verifyThatAllExpectationsHaveBeenMet
@@ -50,16 +68,6 @@
 	}
 	
 	return self;
-}
-
-- (void)verify:(Function)expectation
-{
-	expectation();
-}
-
-- (id)selector:(SEL)aSelector returns:(CPObject)value
-{
-	[_returnValues setObject:value forKey:aSelector];
 }
 
 // Ignore the following interface unless you know what you are doing! 
@@ -76,8 +84,8 @@
 	var aSelector = [anInvocation selector];
 	if([_baseObject respondsToSelector:aSelector])
 	{
-		incrementNumberOfCalls(anInvocation, _timesSelectorHasBeenCalled);
-		setReturnValue(anInvocation, _returnValues);
+		incrementNumberOfCalls(anInvocation, _selectors);
+		setReturnValue(anInvocation, _selectors);
 	}
 	else
 	{
@@ -88,25 +96,27 @@
 
 @end
 
-function incrementNumberOfCalls(anInvocation, _timesSelectorHasBeenCalled)
+function incrementNumberOfCalls(anInvocation, _selectors)
 {
-	var aSelector = [anInvocation selector];
-	if([[_timesSelectorHasBeenCalled allKeys] containsObject:aSelector])
+	var theSelector = findSelector([[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector])], _selectors);
+	if(theSelector)
 	{
-		[_timesSelectorHasBeenCalled setObject:[_timesSelectorHasBeenCalled valueForKey:aSelector]+1 forKey:aSelector];
+		[theSelector setTimesCalled:[theSelector timesCalled]+1];
 	}
 	else
 	{
-		[_timesSelectorHasBeenCalled setObject:1 forKey:aSelector];
+		var aNewSelector = [[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector])];
+		[aNewSelector setTimesCalled:1];
+		[_selectors addObject:aNewSelector];
 	}
 }
 
-function setReturnValue(anInvocation, _returnValues)
+function setReturnValue(anInvocation, _selectors)
 {
-	var aSelector = [anInvocation selector];
-	if([[_returnValues allKeys] containsObject:aSelector])
+	var theSelector = findSelector([[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector])], _selectors);
+	if(theSelector)
 	{
-		[anInvocation setReturnValue:[_returnValues objectForKey:aSelector]];
+		[anInvocation setReturnValue:[theSelector returnValue]];
 	}
 	else
 	{
@@ -119,19 +129,30 @@ function fail(message)
     [CPException raise:AssertionFailedError reason:(message)];
 }
 
-function checkThatSelectorHasBeenCalledExpectedNumberOfTimes(selector, expectedNumberOfTimes, _timesSelectorHasBeenCalled)
-{
-	if([_timesSelectorHasBeenCalled objectForKey:selector] < expectedNumberOfTimes)
+function checkThatSelectorHasBeenCalledExpectedNumberOfTimes(theSelector, expectedNumberOfTimes)
+{	
+	if(!theSelector)
 	{
-		fail("Selector " + sel_getName(selector) + " wasn't called enough times. Expected: " + expectedNumberOfTimes + " Got: " + [_timesSelectorHasBeenCalled objectForKey:selector]);
+		fail("Selector " + [theSelector name] + " wasn't expected to be called!");
 	}
-	else if([_timesSelectorHasBeenCalled objectForKey:selector] > expectedNumberOfTimes)
+	else if([theSelector timesCalled] < expectedNumberOfTimes)
 	{
-		fail("Selector " + sel_getName(selector) + " was called too many times. Expected: " + expectedNumberOfTimes + " Got: " + [_timesSelectorHasBeenCalled objectForKey:selector]);			
+		fail("Selector " + [theSelector name] + " wasn't called enough times. Expected: " + 
+			expectedNumberOfTimes + " Got: " + [theSelector timesCalled]);
+	}
+	else if([theSelector timesCalled] > expectedNumberOfTimes)
+	{
+		fail("Selector " + [theSelector name] + " was called too many times. Expected: " + 
+			expectedNumberOfTimes + " Got: " + [theSelector timesCalled]);
 	}
 }
 
 function moq(baseObject)
 {
 	return [OJMoq mockBaseObject:baseObject];
+}
+
+function findSelector(selector, _selectors)
+{
+	return [_selectors findBy:function(anotherSelector){return [selector equals:anotherSelector]}];
 }
