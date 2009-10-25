@@ -30,15 +30,9 @@
 	}
 	
 	// If no arguments are specified, then we don't care.
-	if([_arguments count] == 0)
+	if([_arguments count] > 0 && ![_arguments isEqualToArray:[anotherSelector arguments]]) 
 	{
-		for(var i = 0; i < [_arguments count]; i++)
-		{
-			if([_arguments objectForIndex:i] != [[anotherSelector arguments] objectForIndex:i])
-			{
-				return NO;
-			}
-		}
+		return NO;
 	}
 	
 	return YES;

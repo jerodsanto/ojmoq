@@ -1,6 +1,7 @@
 @import <Foundation/CPObject.j>
 @import "OJMoqSelector.j"
 @import "Find+CPArray.j"
+@import "Arguments+CPInvocation.j"
 
 /*!
  * A mocking library based off of the Moq library for .NET
@@ -34,9 +35,14 @@
 
 - (id)expectThatSelector:(SEL)selector isCalled:(int)times
 {
-	var theSelector = [[OJMoqSelector alloc] initWithName:sel_getName(selector)];
-	var expectationFunction = function(){checkThatSelectorHasBeenCalledExpectedNumberOfTimes(findSelector(theSelector, _selectors), times);};	
-	[_expectations addObject:expectationFunction];	
+	return [self expectThatSelector:selector isCalled:times withArguments:[CPArray array]];
+}
+
+- (id)expectThatSelector:(SEL)selector isCalled:(int)times withArguments:(CPArray)arguments
+{
+	var theSelector = [[OJMoqSelector alloc] initWithName:sel_getName(selector) withArguments:arguments];
+	var expectationFunction = function(){checkThatSelectorHasBeenCalledExpectedNumberOfTimesX(theSelector, times, _selectors);};
+	[_expectations addObject:expectationFunction];
 	return self;
 }
 
@@ -98,14 +104,14 @@
 
 function incrementNumberOfCalls(anInvocation, _selectors)
 {
-	var theSelector = findSelector([[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector])], _selectors);
+	var theSelector = findSelector([[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector]) withArguments:[anInvocation userArguments]], _selectors);
 	if(theSelector)
 	{
 		[theSelector setTimesCalled:[theSelector timesCalled]+1];
 	}
 	else
 	{
-		var aNewSelector = [[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector])];
+		var aNewSelector = [[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector]) withArguments:[anInvocation userArguments]];
 		[aNewSelector setTimesCalled:1];
 		[_selectors addObject:aNewSelector];
 	}
@@ -129,11 +135,13 @@ function fail(message)
     [CPException raise:AssertionFailedError reason:(message)];
 }
 
-function checkThatSelectorHasBeenCalledExpectedNumberOfTimes(theSelector, expectedNumberOfTimes)
+function checkThatSelectorHasBeenCalledExpectedNumberOfTimesX(aSelector, expectedNumberOfTimes, _selectors)
 {	
+	var theSelector = findSelector(aSelector, _selectors);
+	
 	if(!theSelector)
 	{
-		fail("Selector " + [theSelector name] + " wasn't expected to be called!");
+		fail("Selector " + [aSelector name] + " wasn't expected to be called with arguments" + [aSelector arguments] + "!");
 	}
 	else if([theSelector timesCalled] < expectedNumberOfTimes)
 	{
