@@ -88,7 +88,8 @@
 - (void)forwardInvocation:(CPInvocation)anInvocation
 {
 	var aSelector = [anInvocation selector];
-	if([_baseObject respondsToSelector:aSelector])
+	var theSelector = findSelector([[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector]) withArguments:[anInvocation userArguments]], _selectors);
+	if(theSelector || [_baseObject respondsToSelector:aSelector])
 	{
 		incrementNumberOfCalls(anInvocation, _selectors);
 		setReturnValue(anInvocation, _selectors);
