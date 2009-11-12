@@ -115,6 +115,33 @@
 	[self assertThrows:function(){[mock verifyThatAllExpectationsHaveBeenMet];}];
 }
 
+- (void)testThatOJMoqDoesDistinguishBetweenArgumentsWhenGettingReturnValue
+{
+	var aMock = moq();
+	var returnValue = "Value";
+	[aMock selector:@selector(a:) withArguments:[CPArray arrayWithObject:@"Arg1"] returns:returnValue];
+	[self assert:[aMock a:@"Arg1"] equals:returnValue];
+	[self assert:[aMock a:@"Arg2"] notEqual:returnValue];
+}
+
+// Adding these because ojtest does not have them. Should eventually
+// do a pull request for these.
+- (void)assert:(id)expected notEqual:(id)actual
+{
+    [self assert:expected notEqual:actual message:nil];
+}
+
+- (void)assert:(id)expected notEqual:(id)actual message:(CPString)message
+{
+    if (expected === actual || [expected isEqual:actual])
+        [self failEqual:expected actual:actual message:message];
+}
+
+- (void)failEqual:(id)expected actual:(id)actual message:(CPString)message
+{
+    [self fail:((message ? message+" " : "")+"expected inequality. Expected:<"+expected+"> Got:<"+actual+">")];
+}
+
 // Only necessarily until new release of ojtest.
 // I don't need this (on the 0.8 branch) but leaving it
 // for compatibility reasons. When 0.8 is officially

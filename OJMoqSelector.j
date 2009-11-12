@@ -6,11 +6,6 @@
 	CPArray _arguments @accessors(property=arguments);
 }
 
--(id)initWithName:(CPString)aName
-{
-	return [self initWithName:aName withArguments:[[CPArray init] alloc]];
-}
-
 -(id)initWithName:(CPString)aName withArguments:(CPArray)someArguments
 {
 	if(self = [super init])

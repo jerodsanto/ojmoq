@@ -65,14 +65,19 @@ function moq(baseObject)
 
 - (id)selector:(SEL)aSelector returns:(CPObject)value
 {
-	var theSelector = __ojmoq_findSelector([[OJMoqSelector alloc] initWithName:sel_getName(aSelector)], _selectors);
+	[self selector:aSelector withArguments:[CPArray array] returns:value];
+}
+
+- (id)selector:(SEL)aSelector withArguments:(CPArray)arguments returns:(CPObject)value
+{
+	var theSelector = __ojmoq_findSelector([[OJMoqSelector alloc] initWithName:sel_getName(aSelector) withArguments:arguments], _selectors);
 	if(theSelector)
 	{
 		[theSelector setReturnValue:value];
 	}
 	else
 	{
-		var aNewSelector = [[OJMoqSelector alloc] initWithName:sel_getName(aSelector)];
+		var aNewSelector = [[OJMoqSelector alloc] initWithName:sel_getName(aSelector) withArguments:arguments];
 		[aNewSelector setReturnValue:value];
 		[_selectors addObject:aNewSelector];
 	}
@@ -124,7 +129,7 @@ function __ojmoq_incrementNumberOfCalls(anInvocation, _selectors)
 
 function __ojmoq_setReturnValue(anInvocation, _selectors)
 {
-	var theSelector = __ojmoq_findSelector([[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector])], _selectors);
+	var theSelector = __ojmoq_findSelector([[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector]) withArguments:[anInvocation userArguments]], _selectors);
 	if(theSelector)
 	{
 		[anInvocation setReturnValue:[theSelector returnValue]];
