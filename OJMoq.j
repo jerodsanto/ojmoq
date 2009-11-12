@@ -45,22 +45,22 @@ var wasCalledTooMuch = "Selector %@ was called too many times. Expected: %@ Got:
 - (id)expectSelector:(SEL)selector times:(int)times arguments:(CPArray)arguments
 {
 	var theSelector = [[OJMoqSelector alloc] initWithName:sel_getName(selector) withArguments:arguments];
-	var expectationFunction = function(){checkThatSelectorHasBeenCalledExpectedNumberOfTimesX(theSelector, times, _selectors);};
+	var expectationFunction = function(){__ojmoq_checkThatSelectorHasBeenCalledExpectedNumberOfTimes(theSelector, times, _selectors);};
 	[_expectations addObject:expectationFunction];
 	return self;
 }
 
 - (id)selector:(SEL)aSelector returns:(CPObject)value
 {
-	var theSelector = findSelector([[OJMoqSelector alloc] initWithName:sel_getName(aSelector)], _selectors);
+	var theSelector = __ojmoq_findSelector([[OJMoqSelector alloc] initWithName:sel_getName(aSelector)], _selectors);
 	if(theSelector)
 	{
-		[theSelector setReturnValue:value];
+		[theSelector __ojmoq_setReturnValue:value];
 	}
 	else
 	{
 		var aNewSelector = [[OJMoqSelector alloc] initWithName:sel_getName(aSelector)];
-		[aNewSelector setReturnValue:value];
+		[aNewSelector __ojmoq_setReturnValue:value];
 		[_selectors addObject:aNewSelector];
 	}
 }
@@ -87,11 +87,12 @@ var wasCalledTooMuch = "Selector %@ was called too many times. Expected: %@ Got:
 - (void)forwardInvocation:(CPInvocation)anInvocation
 {
 	var aSelector = [anInvocation selector];
-	var theSelector = findSelector([[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector]) withArguments:[anInvocation userArguments]], _selectors);
+	var theSelector = __ojmoq_findSelector([[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector]) 
+		withArguments:[anInvocation userArguments]], _selectors);
 	if(theSelector || [_baseObject respondsToSelector:aSelector])
 	{
-		incrementNumberOfCalls(anInvocation, _selectors);
-		setReturnValue(anInvocation, _selectors);
+		__ojmoq_incrementNumberOfCalls(anInvocation, _selectors);
+		__ojmoq_setReturnValue(anInvocation, _selectors);
 	}
 	else
 	{
@@ -102,24 +103,26 @@ var wasCalledTooMuch = "Selector %@ was called too many times. Expected: %@ Got:
 
 @end
 
-function incrementNumberOfCalls(anInvocation, _selectors)
+function __ojmoq_incrementNumberOfCalls(anInvocation, _selectors)
 {
-	var theSelector = findSelector([[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector]) withArguments:[anInvocation userArguments]], _selectors);
+	var theSelector = __ojmoq_findSelector([[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector]) 
+		withArguments:[anInvocation userArguments]], _selectors);
 	if(theSelector)
 	{
 		[theSelector setTimesCalled:[theSelector timesCalled]+1];
 	}
 	else
 	{
-		var aNewSelector = [[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector]) withArguments:[anInvocation userArguments]];
+		var aNewSelector = [[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector]) 
+			withArguments:[anInvocation userArguments]];
 		[aNewSelector setTimesCalled:1];
 		[_selectors addObject:aNewSelector];
 	}
 }
 
-function setReturnValue(anInvocation, _selectors)
+function __ojmoq_setReturnValue(anInvocation, _selectors)
 {
-	var theSelector = findSelector([[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector])], _selectors);
+	var theSelector = __ojmoq_findSelector([[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector])], _selectors);
 	if(theSelector)
 	{
 		[anInvocation setReturnValue:[theSelector returnValue]];
@@ -130,26 +133,28 @@ function setReturnValue(anInvocation, _selectors)
 	}
 }
 
-function fail(message)
+function __ojmoq_fail(message)
 {
-    [CPException raise:AssertionFailedError reason:(message)];
+    [CPException raise:Assertion__ojmoq_failedError reason:(message)];
 }
 
-function checkThatSelectorHasBeenCalledExpectedNumberOfTimesX(aSelector, expectedNumberOfTimes, _selectors)
+function __ojmoq_checkThatSelectorHasBeenCalledExpectedNumberOfTimes(aSelector, expectedNumberOfTimes, _selectors)
 {	
-	var theSelector = findSelector(aSelector, _selectors);
+	var theSelector = __ojmoq_findSelector(aSelector, _selectors);
 	
 	if(!theSelector)
 	{
-		fail([CPString stringWithFormat:wasntExpectingArguments, [aSelector name], [aSelector arguments]]);
+		__ojmoq_fail([CPString stringWithFormat:wasntExpectingArguments, [aSelector name], [aSelector arguments]]);
 	}
 	else if([theSelector timesCalled] < expectedNumberOfTimes)
 	{
-		fail([CPString stringWithFormat:wasntCalledEnough, [theSelector name], expectedNumberOfTimes, [theSelector timesCalled]]);
+		__ojmoq_fail([CPString stringWithFormat:wasntCalledEnough, [theSelector name], 
+			expectedNumberOfTimes, [theSelector timesCalled]]);
 	}
 	else if([theSelector timesCalled] > expectedNumberOfTimes)
 	{
-		fail([CPString stringWithFormat:wasCalledTooMuch, [theSelector name], expectedNumberOfTimes, [theSelector timesCalled]]);
+		__ojmoq_fail([CPString stringWithFormat:wasCalledTooMuch, [theSelector name], 
+			expectedNumberOfTimes, [theSelector timesCalled]]);
 	}
 }
 
@@ -163,7 +168,7 @@ function moq(baseObject)
 	return [OJMoq mockBaseObject:baseObject];
 }
 
-function findSelector(selector, _selectors)
+function __ojmoq_findSelector(selector, _selectors)
 {
 	return [_selectors findBy:function(anotherSelector){return [selector equals:anotherSelector]}];
 }
