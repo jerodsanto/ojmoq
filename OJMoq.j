@@ -151,6 +151,11 @@ function checkThatSelectorHasBeenCalledExpectedNumberOfTimesX(aSelector, expecte
 	}
 }
 
+function moq()
+{
+	return [OJMoq mockBaseObject:[[CPObject alloc] init]];
+}
+
 function moq(baseObject)
 {
 	return [OJMoq mockBaseObject:baseObject];
