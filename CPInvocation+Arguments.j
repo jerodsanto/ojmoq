@@ -7,7 +7,7 @@
 
 - (CPArray)userArguments
 {
-	return _arguments.splice(0,2);
+	return _arguments.slice(2,_arguments.length);
 }
 
 @end

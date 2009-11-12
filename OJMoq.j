@@ -3,9 +3,22 @@
 @import "CPArray+Find.j"
 @import "CPInvocation+Arguments.j"
 
+var failedCalledMessage = "The base object does not have that selector or you forgot to set up expectations for selector %@!";
 var wasntExpectingArguments = "Selector %@ wasn't expected to be called with arguments: %@!";
 var wasntCalledEnough = "Selector %@ wasn't called enough times. Expected: %@ Got: %@";
 var wasCalledTooMuch = "Selector %@ was called too many times. Expected: %@ Got: %@";
+
+// Create a mock object based on a typical object.
+function moq()
+{
+	return moq([[CPObject alloc] init]);
+}
+
+// Create a mock object based on a given object.
+function moq(baseObject)
+{
+	return [OJMoq mockBaseObject:baseObject];
+}
 
 /*!
  * A mocking library based off of the Moq library for .NET
@@ -39,7 +52,7 @@ var wasCalledTooMuch = "Selector %@ was called too many times. Expected: %@ Got:
 
 - (id)expectSelector:(SEL)selector times:(int)times
 {
-	return [self expectThatSelector:selector isCalled:times withArguments:[CPArray array]];
+	return [self expectSelector:selector times:times arguments:[CPArray array]];
 }
 
 - (id)expectSelector:(SEL)selector times:(int)times arguments:(CPArray)arguments
@@ -55,12 +68,12 @@ var wasCalledTooMuch = "Selector %@ was called too many times. Expected: %@ Got:
 	var theSelector = __ojmoq_findSelector([[OJMoqSelector alloc] initWithName:sel_getName(aSelector)], _selectors);
 	if(theSelector)
 	{
-		[theSelector __ojmoq_setReturnValue:value];
+		[theSelector setReturnValue:value];
 	}
 	else
 	{
 		var aNewSelector = [[OJMoqSelector alloc] initWithName:sel_getName(aSelector)];
-		[aNewSelector __ojmoq_setReturnValue:value];
+		[aNewSelector setReturnValue:value];
 		[_selectors addObject:aNewSelector];
 	}
 }
@@ -85,20 +98,9 @@ var wasCalledTooMuch = "Selector %@ was called too many times. Expected: %@ Got:
 }
 
 - (void)forwardInvocation:(CPInvocation)anInvocation
-{
-	var aSelector = [anInvocation selector];
-	var theSelector = __ojmoq_findSelector([[OJMoqSelector alloc] initWithName:sel_getName([anInvocation selector]) 
-		withArguments:[anInvocation userArguments]], _selectors);
-	if(theSelector || [_baseObject respondsToSelector:aSelector])
-	{
-		__ojmoq_incrementNumberOfCalls(anInvocation, _selectors);
-		__ojmoq_setReturnValue(anInvocation, _selectors);
-	}
-	else
-	{
-		CPLog("The base object does not have that selector!");
-		[self doesNotRecognizeSelector:aSelector];
-	}
+{		
+	__ojmoq_incrementNumberOfCalls(anInvocation, _selectors);
+	__ojmoq_setReturnValue(anInvocation, _selectors);
 }
 
 @end
@@ -129,13 +131,13 @@ function __ojmoq_setReturnValue(anInvocation, _selectors)
 	}
 	else
 	{
-		[anInvocation setReturnValue:[CPObject init]];
+		[anInvocation setReturnValue:[[CPObject alloc] init]];
 	}
 }
 
 function __ojmoq_fail(message)
 {
-    [CPException raise:Assertion__ojmoq_failedError reason:(message)];
+    [CPException raise:AssertionFailedError reason:message];
 }
 
 function __ojmoq_checkThatSelectorHasBeenCalledExpectedNumberOfTimes(aSelector, expectedNumberOfTimes, _selectors)
@@ -156,16 +158,6 @@ function __ojmoq_checkThatSelectorHasBeenCalledExpectedNumberOfTimes(aSelector, 
 		__ojmoq_fail([CPString stringWithFormat:wasCalledTooMuch, [theSelector name], 
 			expectedNumberOfTimes, [theSelector timesCalled]]);
 	}
-}
-
-function moq()
-{
-	return [OJMoq mockBaseObject:[[CPObject alloc] init]];
-}
-
-function moq(baseObject)
-{
-	return [OJMoq mockBaseObject:baseObject];
 }
 
 function __ojmoq_findSelector(selector, _selectors)

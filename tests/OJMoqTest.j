@@ -2,118 +2,123 @@
 
 @implementation OJMoqTest : OJTestCase
 
-- (void)testThatOJMoqLoads
+- (void)testThatOJMoqDoesInitialize_functional
 {
-	return [self assertNotNull:[[OJMoq alloc] initWithBaseObject:@"Test"]];
+	// functional way of instantiation
+	var aMock = moq();
+	[self assertNotNull:aMock];
 }
 
-- (void)testThatOJMoqLoadsWithClassMethod
+- (void)testThatOJMoqDoesInitializeWithBaseObject_functional
 {
-	return [self assertNotNull:[OJMoq mockBaseObject:@"Test"]];
+	// functional way of instantiation
+	var aMock = moq(@"Test");
+	[self assertNotNull:aMock];
 }
 
-- (void)testThatOJMoqLoadsWithJavascriptMethod
+- (void)testThatOJMoqDoesInitializeWithBaseObject_class
 {
-	return [self assertNotNull:moq(@"Test")];
+	// object-oriented, class method way of instatiation
+	var aMock = [OJMoq mockBaseObject:@"Test"];
+	[self assertNotNull:aMock];
 }
 
-- (void)testThatOJMoqDoesVerifyExpectationThatSelectorIsCalledOnce
+- (void)testThatOJMoqDoesInitializeWithBaseObject_instance
 {
-	var mock = [OJMoq mockBaseObject:@"Test"];
-	[mock expectThatSelector:@selector(length) isCalled:2];
-	
-	[mock length];
-	[mock length];
-		
-	[mock verifyThatAllExpectationsHaveBeenMet];
+	// object-oriented, instanced method way of instatiation
+	var aMock = [[OJMoq alloc] initWithBaseObject:@"Test"];
+	[self assertNotNull:aMock];
 }
 
-- (void)testThatOJMoqDoesVerifyExpectationThatSelectorIsCalledTwice
-{
-	var mock = [OJMoq mockBaseObject:@"Test"];
-	[mock expectThatSelector:@selector(length) isCalled:2];
-	
-	[mock length];
-	[mock length];
-		
-	[mock verifyThatAllExpectationsHaveBeenMet];
+- (void)testThatOJMoqDoesVerifyAnExpectation
+{	
+	var aMock = moq();
+	[aMock expectSelector:@selector(a) times:1];
+	[aMock a];
+	[aMock verifyThatAllExpectationsHaveBeenMet];
 }
 
-- (void)testThatOJMoqDoesNotVerifyExpectationThatSelectorIsCalledTwiceWhenCalledOnce
+- (void)testThatOJMoqDoesVerifyMultipleExpectations
 {
-	var mock = [OJMoq mockBaseObject:@"Test"];
-	[mock expectThatSelector:@selector(length) isCalled:2];
-	
-	[mock length];
-		
-	[self assertThrows:function(){[mock verifyThatAllExpectationsHaveBeenMet]}];
+	var aMock = moq();
+	[aMock expectSelector:@selector(a) times:1];
+	[aMock expectSelector:@selector(b) times:1];
+	[aMock a];
+	[aMock b];
+	[aMock verifyThatAllExpectationsHaveBeenMet];
 }
 
-- (void)testThatOJMoqDoesNotVerifyExpectationThatSelectorIsCalledTwiceWhenCalledThreeTimes
+- (void)testThatOJMoqDoesInvalidateAnExpectation
 {
-	var mock = [OJMoq mockBaseObject:@"Test"];
-	[mock expectThatSelector:@selector(length) isCalled:2];
-	
-	[mock length];
-	[mock length];
-	[mock length];
-		
-	[self assertThrows:function(){[mock verifyThatAllExpectationsHaveBeenMet]}];
+	var aMock = moq();
+	[aMock expectSelector:@selector(a) times:2];
+	[aMock a];
+	[self assertThrows:function(){[mock verifyThatAllExpectationsHaveBeenMet];}];
 }
 
-- (void)testThatOJMoqDoesVerifyExpectationsThatSelectorIsCalledOnceWithArguments
+- (void)testThatOJMoqDoesInvalidateAnExpectationThatHasNeverBeenCalled
 {
-	var mock = moq(@"Test"); // shorthard function to make mocking easily. Idea from "flexmock()" in Ruby.
-	var arguments = [CPArray arrayWithObject:@"Bob"];
-	
-	[mock expectThatSelector:@selector(compare:) isCalled:1 withArguments:new Array("Bob")];
-	
-	[mock compare:"Bob"];
-	[mock compare:"Tom"];
-	
-	[mock verifyThatAllExpectationsHaveBeenMet];
+	var aMock = moq();
+	[aMock expectSelector:@selector(a) times:1];
+	[self assertThrows:function(){[mock verifyThatAllExpectationsHaveBeenMet];}];
 }
 
-- (void)testThatOJMoqDoesNotVerifyExpectationsThatSelectorIsCalledOnceWithArguments
+// AKA Stubbing!
+- (void)testThatOJMoqDoesReturnForAnyCall
 {
-	var mock = moq(@"Test"); // shorthard function to make mocking easily. Idea from "flexmock()" in Ruby.
-	var arguments = [CPArray arrayWithObject:@"Bob"];
-	
-	[mock expectThatSelector:@selector(compare:) isCalled:1 withArguments:new Array("Bob")];
-	
-	[mock compare:"Tom"];
-	
-	[self assertThrows:function(){[mock verifyThatAllExpectationsHaveBeenMet]}];
+	var aMock = moq();
+	var returnValue = [aMock a];
+	[self assertNotNull:returnValue];
 }
 
-- (void)testThatOJMoqDoesVerifyExpectationsThatSelectorIsCalledOnceWithArgumentsAndTwoExpectationsOnThoseArguments
+- (void)testThatOJMoqDoesReturnSetValue
 {
-	var mock = moq(@"Test"); // shorthard function to make mocking easily. Idea from "flexmock()" in Ruby.
-	var arguments = [CPArray arrayWithObject:@"Bob"];
-	
-	[mock expectThatSelector:@selector(compare:) isCalled:1 withArguments:new Array("Bob")];
-	[mock expectThatSelector:@selector(compare:) isCalled:1 withArguments:new Array("Tom")];
-	
-	[mock compare:"Bob"];
-	[mock compare:"Tom"];
-	
-	[mock verifyThatAllExpectationsHaveBeenMet];
+	var aMock = moq();
+	var returnValue = "Return";
+	[aMock selector:@selector(a) returns:returnValue];
+	[self assert:[aMock a] equals:returnValue];
 }
 
-- (void)testThatOJMoqDoesNotVerifyExpectationsThatSelectorIsCalledOnceWithArgumentsAndTwoExpectationsOnThoseArguments
+- (void)testThatOJMoqDoesDistinguishBetweenArguments
 {
-	var mock = moq(@"Test"); // shorthard function to make mocking easily. Idea from "flexmock()" in Ruby.
-	var arguments = [CPArray arrayWithObject:@"Bob"];
-	
-	[mock expectThatSelector:@selector(compare:) isCalled:1 withArguments:new Array("Bob")];
-	[mock expectThatSelector:@selector(compare:) isCalled:1 withArguments:new Array("Tom")];
-	
-	[mock compare:"Bob"];
-	
-	[self assertThrows:function(){[mock verifyThatAllExpectationsHaveBeenMet]}];
+	var aMock = moq();
+	[aMock expectSelector:@selector(a:) times:1 withArguments:[CPArray arrayWithObject:@"Arg1"]];
+	[aMock expectSelector:@selector(a:) times:1 withArguments:[CPArray arrayWithObject:@"Arg2"]];
+	[aMock a:@"Arg1"];
+	[aMock a:@"Arg2"];
+	[aMock verifyThatAllExpectationsHaveBeenMet];
+}
+
+- (void)testThatOJMoqDoesDistinguishBetweenArgumentsAndThrowWhenNotMet
+{
+	var aMock = moq();
+	[aMock expectSelector:@selector(a:) times:1 withArguments:[CPArray arrayWithObject:@"Arg1"]];
+	[aMock expectSelector:@selector(a:) times:1 withArguments:[CPArray arrayWithObject:@"Arg2"]];
+	[aMock a:@"Arg1"];
+	[self assertThrows:function(){[mock verifyThatAllExpectationsHaveBeenMet];}];
+}
+
+- (void)testThatOJMoqDoesThrowWhenCalledTooMuch
+{
+	var aMock = moq();
+	[aMock expectSelector:@selector(a) times:2];
+	[aMock a];
+	[aMock a];
+	[self assertThrows:function(){[mock verifyThatAllExpectationsHaveBeenMet];}];
+}
+
+- (void)testThatOJMoqDoesThrowWhenCalledTooLittle
+{
+	var aMock = moq();
+	[aMock expectSelector:@selector(a) times:2];
+	[aMock a];
+	[self assertThrows:function(){[mock verifyThatAllExpectationsHaveBeenMet];}];
 }
 
 // Only necessarily until new release of ojtest.
+// I don't need this (on the 0.8 branch) but leaving it
+// for compatibility reasons. When 0.8 is officially
+// released, I will remove this finally.
 - (void)assertThrows:(Function)zeroArgClosure
 {
     var exception = nil;

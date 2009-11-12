@@ -18,6 +18,7 @@
 		_name = aName;
 		_arguments = someArguments;
 		_timesCalled = 0;
+		_returnValue = [[CPObject alloc] init];
 	}
 	return self;
 }
