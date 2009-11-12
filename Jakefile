@@ -1,18 +1,25 @@
-#!/usr/bin/env narwhal
+/*
+ * Jakefile
+ * test
+ *
+ * Created by You on November 12, 2009.
+ * Copyright 2009, Your Company All rights reserved.
+ */
 
-var FILE = require("file"),
-    ENV = require("system").env,
-    OS = require("os"),
-    jake = require("jake");
-	
-require(FILE.absolute("common.jake"));
+var ENV = require("system").env,
+    FILE = require("file"),
+    task = require("jake").task,
+	OS = require("os"),
+    FileList = require("jake").FileList,
+    app = require("cappuccino/jake").app,
+    configuration = ENV["CONFIG"] || ENV["CONFIGURATION"] || ENV["c"] || "Debug";
 
 task ("test", function()
 {
     var tests = new FileList('tests/*Test.j');
     var cmd = ["ojtest"].concat(tests.items());
     var cmdString = cmd.map(OS.enquote).join(" ");
-    
+
     var code = OS.system(cmdString);
     if (code !== 0)
         OS.exit(code);
