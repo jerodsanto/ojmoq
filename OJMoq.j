@@ -1,7 +1,7 @@
 @import <Foundation/CPObject.j>
 @import "OJMoqSelector.j"
-@import "Find+CPArray.j"
-@import "Arguments+CPInvocation.j"
+@import "CPArray+Find.j"
+@import "CPInvocation+Arguments.j"
 
 /*!
  * A mocking library based off of the Moq library for .NET
@@ -33,12 +33,12 @@
 	return self;
 }
 
-- (id)expectThatSelector:(SEL)selector isCalled:(int)times
+- (id)expectSelector:(SEL)selector times:(int)times
 {
 	return [self expectThatSelector:selector isCalled:times withArguments:[CPArray array]];
 }
 
-- (id)expectThatSelector:(SEL)selector isCalled:(int)times withArguments:(CPArray)arguments
+- (id)expectSelector:(SEL)selector times:(int)times arguments:(CPArray)arguments
 {
 	var theSelector = [[OJMoqSelector alloc] initWithName:sel_getName(selector) withArguments:arguments];
 	var expectationFunction = function(){checkThatSelectorHasBeenCalledExpectedNumberOfTimesX(theSelector, times, _selectors);};
@@ -59,11 +59,6 @@
 		[aNewSelector setReturnValue:value];
 		[_selectors addObject:aNewSelector];
 	}
-}
-
-- (id)selector:(SEL)aSelector withArguments:(CPArray)someArguments returns:(CPObject)value
-{
-	
 }
 
 - (id)verifyThatAllExpectationsHaveBeenMet
