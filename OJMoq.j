@@ -3,6 +3,10 @@
 @import "CPArray+Find.j"
 @import "CPInvocation+Arguments.j"
 
+var wasntExpectingArguments = "Selector {0} wasn't expected to be called with arguments: {1}!";
+var wasntCalledEnough = "Selector {0} wasn't called enough times. Expected: {1} Got: {2}";
+var wasCalledTooMuch = "Selector {0} was called too many times. Expected: {1} Got: {2}";
+
 /*!
  * A mocking library based off of the Moq library for .NET
  *
@@ -137,18 +141,29 @@ function checkThatSelectorHasBeenCalledExpectedNumberOfTimesX(aSelector, expecte
 	
 	if(!theSelector)
 	{
-		fail("Selector " + [aSelector name] + " wasn't expected to be called with arguments" + [aSelector arguments] + "!");
+		fail(formattedString(wasntExpectingArguments, [aSelector name], [aSelector arguments]));
 	}
 	else if([theSelector timesCalled] < expectedNumberOfTimes)
 	{
-		fail("Selector " + [theSelector name] + " wasn't called enough times. Expected: " + 
-			expectedNumberOfTimes + " Got: " + [theSelector timesCalled]);
+		fail(formattedString(wasntCalledEnough, [theSelector name], expectedNumberOfTimes, [theSelector timesCalled]));
 	}
 	else if([theSelector timesCalled] > expectedNumberOfTimes)
 	{
-		fail("Selector " + [theSelector name] + " was called too many times. Expected: " + 
-			expectedNumberOfTimes + " Got: " + [theSelector timesCalled]);
+		fail(formattedString(wasCalledTooMuch, [theSelector name], expectedNumberOfTimes, [theSelector timesCalled]));
 	}
+}
+
+// Shameless copy from Yahoo UI library.
+// http://developer.yahoo.com/yui/license.html
+function formatedString() { 
+  var num = arguments.length; 
+  var oStr = arguments[0];
+  for (var i = 1; i < num; i++) { 
+    var pattern = "\\{" + (i-1) + "\\}"; 
+    var re = new RegExp(pattern, "g"); 
+    oStr = oStr.replace(re, arguments[i]); 
+  } 
+  return oStr; 
 }
 
 function moq()
