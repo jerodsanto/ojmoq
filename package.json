@@ -1,6 +1,8 @@
 {
-    "name": "",
-    "author": "",
-    "dependencies": [],
-    "contributors": []
+    "name": "ojmoq",
+    "dependencies": ["narwhal", "objective-j"],
+    "author": "Derek Hammer",
+    "description": "A mocking library for Objective-J that is inspired by the Moq project.",
+    "keywords": ["objective-j", "unit test", "testing", "test", "mocking"],
+    "objj-frameworks": ["Framework"]
 }

@@ -1,0 +1,69 @@
+#!/usr/bin/env objj
+
+@import <Foundation/Foundation.j>
+CPLogRegister(CPLogPrint, "info");
+FILE = require("file");
+SYSTEM = require("system");
+require("objective-j");
+OS = require("OS");
+
+INFO = "\n"+
+"OJMoq\n"+
+"OJMoq is a mocking library for Objective-J.\n"+
+"\n"+
+"\tinfo\t\tThis\n"+
+"\tinit\t\tWill initialize OJMoq in an existing Cappuccino project\n";
+
+@implementation OJMoq : CPObject
+
++ (void)handleArguments:(CPArray)args
+{
+	if(args == "init")
+	{
+		if(FILE.isFile("AppController.j"))
+		{
+			CPLog.info(["Installing framework.."], "info", "OJMoq");
+			try
+			{
+				var baristaFramework = FILE.join(SYSTEM.prefix, "packages", "ojmoq", "Framework", "OJMoq");
+				var target = FILE.join("Frameworks", "OJMoq");
+				
+				
+				if (FILE.isDirectory(target)) {
+					CPLog.info("Removing old Framework installation..");
+				    FILE.rmtree(target);
+				}
+				
+				FILE.copyTree(baristaFramework, FILE.cwd() + "/Frameworks/OJMoq");
+			}
+			catch(ex)
+			{
+				CPLog.error("Error installing frameworks! Exiting..");
+				return;
+			}
+			
+			CPLog.info("OJMoq was successfully initialized.");
+		}
+		else
+		{
+			CPLog.error("You need to be in the toplevel folder of a Cappuccino application!");
+		}
+	}
+	else
+	{
+		[self info];
+	}
+}
+
++ (void)info
+{
+	CPLog.info(INFO);
+}
+
+@end
+
+CPLog["error"] = function(msg){_CPLogDispatch([msg], "error", "OJMoq")};
+CPLog["info"] = function(msg){_CPLogDispatch([msg], "info", "OJMoq")};
+CPLog["warn"] = function(msg){_CPLogDispatch([msg], "warn", "OJMoq")};
+
+[Barista handleArguments:args];
