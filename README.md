@@ -3,6 +3,16 @@ OJMoq
 
 OJMoq is a mocking library for Objective-J. OJMoq can be dropped into any project and quickly, easily get people running with mocks.
 
+Installation
+============
+
+New, and improved, you can now use the Narwhal package manager to install OJMoq. To pull down from github with tusk
+    tusk update
+    sudo tusk install ojmoq
+And then to install it in your Cappuccino project, go to the project root (where AppController.j is) and run
+    ojmoq init
+And you're done! Now you can use @import <OJMoq/OJMoq.j> in your tests.
+
 Usage
 =====
 
