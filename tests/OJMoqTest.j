@@ -124,6 +124,16 @@
 	[self assert:[aMock a:@"Arg2"] notEqual:returnValue];
 }
 
+- (void)testThatOJMoqDoesIgnoreEmptyArgumentsArrayWhenGettingReturnValue
+{
+    var aMock = moq();
+    var returnValue = "Value";
+    [aMock selector:@selector(a:) withArguments:[CPArray array] returns:returnValue];
+    [self assert:returnValue equals:[aMock a:[CPArray array]]];
+    [self assert:returnValue equals:[aMock a:@"Arg1"]];
+}
+
+
 // Adding these because ojtest does not have them. Should eventually
 // do a pull request for these.
 - (void)assert:(id)expected notEqual:(id)actual
