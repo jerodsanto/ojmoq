@@ -24,13 +24,16 @@
 	{
 		return NO;
 	}
-	
+
 	// If no arguments are specified, then we don't care.
-	if([_arguments count] > 0 && ![_arguments isEqualToArray:[anotherSelector arguments]]) 
+	if([_arguments count] > 0 && [[anotherSelector arguments] count] > 0)
 	{
-		return NO;
+	    if (![_arguments isEqualToArray:[anotherSelector arguments]])
+	    {
+	        return NO;
+	    }
 	}
-	
+
 	return YES;
 }
 
