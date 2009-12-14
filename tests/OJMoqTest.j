@@ -1,4 +1,4 @@
-@import "../OJMoq.j"
+@import "../Framework/OJMoq/OJMoq.j"
 
 @implementation OJMoqTest : OJTestCase
 
@@ -31,7 +31,7 @@
 }
 
 - (void)testThatOJMoqDoesVerifyAnExpectation
-{	
+{
 	var aMock = moq();
 	[aMock expectSelector:@selector(a) times:1];
 	[aMock a];
